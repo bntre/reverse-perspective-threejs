@@ -21,11 +21,13 @@
 
 		<div id="container"></div>
 
+		<!--
 		<div id="info">
 			<a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> webgl - animation - keyframes<br/>
 			Model: <a href="https://artstation.com/artwork/1AGwX" target="_blank" rel="noopener">Littlest Tokyo</a> by
 			<a href="https://artstation.com/glenatron" target="_blank" rel="noopener">Glen Fox</a>, CC Attribution.
 		</div>
+		-->
 
 		<script type="importmap">
 			{
@@ -52,6 +54,7 @@
 
 
 
+			//-------------------------------------------------------------------------
 			class CustomPerspectiveCamera extends THREE.PerspectiveCamera {
 				constructor(aspect, perspective, zoom, focus, near, far) {
 					// Call the parent constructor
@@ -63,7 +66,7 @@
 				}
 
 				updateProjectionMatrix() {
-					if (this.perspective === undefined) return; // called from super constructor
+					if (this.perspective === undefined) return; // called from super constructor - ignore
 
 					const size = 1 / this.zoom; // height half-size ?
 					const aspect = this.aspect;
@@ -108,12 +111,16 @@
 			}
 
 
+			//-------------------------------------------------------------------------
 
-			const _clock = new THREE.Clock();
 			const container = document.getElementById( 'container' );
 
-			const _stats = new Stats();
-			container.appendChild( _stats.dom );
+			const _useStats = 1;
+			let _stats;
+			if (_useStats) {
+				_stats = new Stats();
+				container.appendChild( _stats.dom );
+			}
 
 			const _renderer = new THREE.WebGLRenderer( { antialias: true } );
 			_renderer.setPixelRatio( window.devicePixelRatio );
@@ -121,42 +128,204 @@
 			_renderer.setAnimationLoop( animate );
 			container.appendChild( _renderer.domElement );
 
-			const pmremGenerator = new THREE.PMREMGenerator( _renderer );
+			window.onresize = function () {
+				_camera.aspect = window.innerWidth / window.innerHeight;
+				_camera.updateProjectionMatrix();
 
-			const _scene = new THREE.Scene();
-			_scene.background = new THREE.Color( 0xbfe3dd );
-			_scene.environment = pmremGenerator.fromScene( new RoomEnvironment(), 0.04 ).texture;
-
-			_scene.fog = new THREE.Fog( 0xbfe3dd, 8, 13 ); //!!! fog
-
-			const _mixers = [];
-
+				_renderer.setSize( window.innerWidth, window.innerHeight );
+			};
 
 			const aspect = window.innerWidth / window.innerHeight;
 			//const _camera = new THREE.PerspectiveCamera( 40, aspect, 1, 100 );
 			//_camera.zoom = 1.0; _camera.updateProjectionMatrix();
-			/*
-			*/
 			const _camera = new CustomPerspectiveCamera( aspect, 
 				0.0,      // perspective
-				0.2,     // zoom
+				0.2,      // zoom
 				10,       // focus
-				5, 15     // near / far
+				//5, 15     // near / far
+				0.001, 50     // near / far
 			);
+			/*
+			*/
 //			_camera.position.set( 5, 2, 8 );
 			_camera.position.set( 0, 0, 10 );
 			_camera.updateMatrixWorld();
 
-/*
-*/
-			const _controls = new OrbitControls( _camera, _renderer.domElement );
-			_controls.target.set( 0, 0.5, 0 );
-			_controls.update();
-			_controls.enablePan = false;
-			_controls.enableDamping = true;
-			_controls.enableZoom = false; // don't change camera distance
 
-			// Reverse perspective camera
+			//-------------------------------------------------------------------------
+			// Scene setup
+
+			const _scene = new THREE.Scene();
+			_scene.background = new THREE.Color( 0xbfe3dd );
+
+			const pmremGenerator = new THREE.PMREMGenerator( _renderer );
+			_scene.environment = pmremGenerator.fromScene( new RoomEnvironment(), 0.04 ).texture;
+
+			_scene.fog = new THREE.Fog( 0xbfe3dd, 8, 13 ); //!!! fog
+
+			if (1) { // Add the grid to the scene
+				const gridHelper = new THREE.GridHelper(10, 10, 0x0000FF, 0x00FF00);
+				gridHelper.position.y = -0.75;
+				_scene.add(gridHelper);
+			}
+
+			//-------------------------------------------------------------------------
+			// Load models
+
+			const _mixers = [];
+
+			const loader = new GLTFLoader();
+
+			const dracoLoader = new DRACOLoader();
+			dracoLoader.setDecoderPath( _threeJsUrl + 'examples/jsm/libs/draco/gltf/' );
+			loader.setDRACOLoader( dracoLoader );
+
+			if (1) {
+				loader.load( _threeJsUrl + 'examples/models/gltf/LittlestTokyo.glb', function ( gltf ) {
+
+					const model = gltf.scene;
+					//model.position.set( 1, 1, 0 );
+					//model.position.set( 0, 1, 0 );
+					model.position.set( 0.2, 1, -0.2 );
+					model.scale.set( 0.01, 0.01, 0.01 );
+					_scene.add( model );
+
+					const mixer = new THREE.AnimationMixer( model );
+					mixer.clipAction( gltf.animations[ 0 ] ).play();
+					_mixers.push(mixer);
+
+				}, undefined, function ( e ) {
+
+					console.error( e );
+
+				} );
+			}
+
+			if (1) {
+				//!!! load Michelle
+				loader.load( _threeJsUrl + 'examples/models/gltf/Michelle.glb', function ( gltf ) {
+					const model = gltf.scene;
+					model.position.set( 0, -0.95, 0 ); // in center
+					//model.position.set( 1, -0.95, 2 ); // near the kiosk
+					model.scale.set( 0.3, 0.3, 0.3 );
+					_scene.add( model );
+
+					const mixer = new THREE.AnimationMixer( model );
+					mixer.clipAction( gltf.animations[ 0 ] ).play();
+					_mixers.push(mixer);
+
+				}, undefined, function ( e ) {
+
+					console.error( e );
+
+				} );
+			}
+
+
+			//-------------------------------------------------------------------------
+			// Move camera along a curve
+
+			//const _cameraTarget = new THREE.Vector3(0, -0.75, 0);
+			const _cameraTarget = new THREE.Vector3(-0.05, -0.75, -0.05);
+
+			const cameraPoints = [
+				//_cameraTarget,
+				
+				new THREE.Vector3(0.1, -0.75, 0.1), // O
+				
+				new THREE.Vector3(-0.2, -0.75, 0.8), // A
+				new THREE.Vector3(-0.2, 0.0, 2.0), // B
+
+				new THREE.Vector3(2.5, 1.0, 2.5), // C
+
+				new THREE.Vector3(2.0, 0.0, -0.2), // B'
+				new THREE.Vector3(0.8, -0.75, -0.2), // A'
+			];
+
+			const _cameraCurve = new THREE.CatmullRomCurve3(cameraPoints, true, 
+				//'centripetal');
+				'chordal');
+				//'catmullrom', 0.5);
+
+			if (0) {  // Add markers for debug
+				const markerGeometry = new THREE.SphereGeometry(0.1, 4, 4); // Small sphere
+				const markerMaterial = new THREE.MeshBasicMaterial({ color: 0xFF0000 }); // Bright red for visibility
+				cameraPoints.forEach((point, index) => {
+					const m = new THREE.Mesh(markerGeometry, markerMaterial);
+					m.position.copy(point);
+					//m.name = `PathPoint_${index}`;
+					_scene.add(m);
+				});
+			}
+			if (1) {
+				const marker2Geometry = new THREE.SphereGeometry(0.01, 4, 4);
+				const marker2Material = new THREE.MeshBasicMaterial({ color: 0x00FF00 });
+				const count = 48;
+				for (let i = 0; i < count; ++i) {
+					const t = i / count;
+					const point = _cameraCurve.getPointAt(t);
+					//const point = _cameraCurve.getPoint(t);
+					
+					const m = new THREE.Mesh(marker2Geometry, marker2Material);
+					m.position.copy(point);
+					_scene.add(m);
+				}
+			}
+
+			const _useCameraCurve = 1;
+			let _cameraCurvePhase = 0.0; // [0..1)
+			
+			let _cameraPerspectiveE = 1.5; //!!! temp
+			let _cameraZoomE = 1.0; //!!! temp
+			
+			const _playCameraCurve = 0;
+			const _playCameraCurveSpeed = 0.1; // cycles per second
+
+			let _cameraMarker;
+			if (0) {
+				const cameraMarkerGeometry = new THREE.SphereGeometry(0.1, 4, 4);
+				const cameraMarkerMaterial = new THREE.MeshBasicMaterial({ color: 0xFF7700 }); // Bright red for visibility
+				_cameraMarker = new THREE.Mesh(cameraMarkerGeometry, cameraMarkerMaterial);
+				_scene.add(_cameraMarker);
+			}
+
+			function updateCamera() {
+
+				// Position
+				const pos = _cameraCurve.getPointAt(_cameraCurvePhase);
+				_camera.position.copy(pos);
+				_camera.lookAt(_cameraTarget);
+				//_camera.updateMatrixWorld(); // updated in lookAt
+				//_cameraMarker.position.copy(pos);
+				
+				// Projection
+				_camera.focus = _cameraTarget.clone().sub(pos).length();
+
+				// https://www.wolframalpha.com/input?i=(cos(x)^2)^3%20for%20x=0..pi
+				let c = Math.cos(_cameraCurvePhase * Math.PI); c *= c; // 1..0..1
+				_camera.perspective        = THREE.MathUtils.lerp(-0.5, 0.5, Math.pow(c, Math.pow(2, _cameraPerspectiveE)));
+				_camera.zoom = Math.pow(2.0, THREE.MathUtils.lerp(-2.0, 2.0, Math.pow(c, Math.pow(2, _cameraZoomE))));
+				
+				_camera.updateProjectionMatrix();
+
+				//console.log("update camera", "phase:", _cameraCurvePhase, "perspective:", _camera.perspective, "zoom:", _camera.zoom);
+				//console.log("update camera", "phase:", _cameraCurvePhase, "pos:", pos, "look at:", _cameraTarget, "focus:", _camera.focus);
+			}
+
+			//-------------------------------------------------------------------------
+			// Add controls
+			const _useOrbitControls = 1 && !_useCameraCurve;
+			let _controls;
+			if (_useOrbitControls) { //!!! NB! controls lookAt !
+				_controls = new OrbitControls( _camera, _renderer.domElement );
+				_controls.target.set( 0, 0.5, 0 );
+				_controls.update();
+				_controls.enablePan = false;
+				_controls.enableDamping = true;
+				_controls.enableZoom = false; // don't change camera distance
+			}
+
+			// Mouse control
 
 			let _prevMouseX = 0, _prevMouseY = 0;
 
@@ -183,9 +352,15 @@
 							_camera.updateProjectionMatrix();
 						}
 						else if (e.shiftKey) {
-							_camera.focus = (nX - 0.5) * 5;
-							console.log("set camera focus", _camera.focus);
-							_camera.updateProjectionMatrix();
+							if (_useCameraCurve) {
+								_cameraPerspectiveE = (nY - 0.5) * 4;
+								_cameraZoomE        = (nX - 0.5) * 4;
+								console.log("camera persp e:", _cameraPerspectiveE, "zoom e:", _cameraZoomE);
+							} else {
+								_camera.focus = (nX - 0.5) * 5;
+								console.log("set camera focus", _camera.focus);
+								_camera.updateProjectionMatrix();
+							}
 						}
 						else if (e.altKey) {
 							_camera.zoom = nX * 3;
@@ -193,66 +368,33 @@
 							_camera.updateProjectionMatrix();
 						}
 						else {
+							if (_useCameraCurve) {
+								_cameraCurvePhase += 1.0 - dX;
+								_cameraCurvePhase %= 1.0;
+							}
 						}
 					}
 				}
 			}, { capture: true } );
+			document.addEventListener('keydown', (e) => {
+				const dirX = e.code == 'ArrowRight' ? 1 :
+				             e.code == 'ArrowLeft'  ? -1 : 0;
+				const dirY = e.code == 'ArrowUp'    ? 1 :
+				             e.code == 'ArrowDown'  ? -1 : 0;
+				if (dirX || dirY) {
+					e.preventDefault();
+					//_flyingSpeedX += 0.05 * dirX;
+					//_flyingSpeedY += 0.05 * dirY;
+				} else if (e.code == 'End') {
+					e.preventDefault();
+					_renderer.setAnimationLoop( null );
+				}
+			});
 
+			//-------------------------------------------------------------------------
+			// Loop
 
-
-
-			const dracoLoader = new DRACOLoader();
-			dracoLoader.setDecoderPath( _threeJsUrl + 'examples/jsm/libs/draco/gltf/' );
-
-			const loader = new GLTFLoader();
-			loader.setDRACOLoader( dracoLoader );
-			loader.load( _threeJsUrl + 'examples/models/gltf/LittlestTokyo.glb', function ( gltf ) {
-
-				const model = gltf.scene;
-				//model.position.set( 1, 1, 0 );
-				model.position.set( 0, 1, 0 );
-				model.scale.set( 0.01, 0.01, 0.01 );
-				_scene.add( model );
-
-				const mixer = new THREE.AnimationMixer( model );
-				mixer.clipAction( gltf.animations[ 0 ] ).play();
-				_mixers.push(mixer);
-
-			}, undefined, function ( e ) {
-
-				console.error( e );
-
-			} );
-
-
-			//!!! load Michelle
-			loader.load( _threeJsUrl + 'examples/models/gltf/Michelle.glb', function ( gltf ) {
-				const model = gltf.scene;
-				model.position.set( 0.7, -0.95, 0.3 );
-				model.scale.set( 0.3, 0.3, 0.3 );
-				_scene.add( model );
-
-				const mixer = new THREE.AnimationMixer( model );
-				mixer.clipAction( gltf.animations[ 0 ] ).play();
-				_mixers.push(mixer);
-
-			}, undefined, function ( e ) {
-
-				console.error( e );
-
-			} );
-
-
-
-			window.onresize = function () {
-
-				_camera.aspect = window.innerWidth / window.innerHeight;
-				_camera.updateProjectionMatrix();
-
-				_renderer.setSize( window.innerWidth, window.innerHeight );
-
-			};
-
+			const _clock = new THREE.Clock();
 
 			function animate() {
 
@@ -262,12 +404,23 @@
 					m.update( delta );
 				}
 
-				_controls.update();
+				if (_useCameraCurve) {
+					if (_playCameraCurve) {
+						_cameraCurvePhase += delta * _playCameraCurveSpeed;
+						_cameraCurvePhase %= 1.0;
+					}
+					updateCamera();
+				}
 
-				_stats.update();
+				if (_useOrbitControls) {
+					_controls.update();
+				}
+
+				if (_useStats) {
+					_stats.update();
+				}
 
 				_renderer.render( _scene, _camera );
-
 			}
 
 
