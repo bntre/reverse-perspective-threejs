@@ -53,7 +53,6 @@
 			import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 
 
-
 			//-------------------------------------------------------------------------
 			class CustomPerspectiveCamera extends THREE.PerspectiveCamera {
 				constructor(aspect, perspective, zoom, focus, near, far) {
@@ -142,12 +141,8 @@
 				0.0,      // perspective
 				0.2,      // zoom
 				10,       // focus
-				//5, 15     // near / far
-				0.001, 50     // near / far
+				5, 15     // near / far
 			);
-			/*
-			*/
-//			_camera.position.set( 5, 2, 8 );
 			_camera.position.set( 0, 0, 10 );
 			_camera.updateMatrixWorld();
 
@@ -161,9 +156,11 @@
 			const pmremGenerator = new THREE.PMREMGenerator( _renderer );
 			_scene.environment = pmremGenerator.fromScene( new RoomEnvironment(), 0.04 ).texture;
 
-			_scene.fog = new THREE.Fog( 0xbfe3dd, 8, 13 ); //!!! fog
+			if (1) { // Fog
+				_scene.fog = new THREE.Fog( 0xbfe3dd, 4, 10 );
+			}
 
-			if (1) { // Add the grid to the scene
+			if (0) { // Grid
 				const gridHelper = new THREE.GridHelper(10, 10, 0x0000FF, 0x00FF00);
 				gridHelper.position.y = -0.75;
 				_scene.add(gridHelper);
@@ -180,7 +177,7 @@
 			dracoLoader.setDecoderPath( _threeJsUrl + 'examples/jsm/libs/draco/gltf/' );
 			loader.setDRACOLoader( dracoLoader );
 
-			if (1) {
+			if (1) { // Tokyo
 				loader.load( _threeJsUrl + 'examples/models/gltf/LittlestTokyo.glb', function ( gltf ) {
 
 					const model = gltf.scene;
@@ -191,6 +188,7 @@
 					_scene.add( model );
 
 					const mixer = new THREE.AnimationMixer( model );
+					// duration 18.233333587646484
 					mixer.clipAction( gltf.animations[ 0 ] ).play();
 					_mixers.push(mixer);
 
@@ -201,17 +199,20 @@
 				} );
 			}
 
-			if (1) {
-				//!!! load Michelle
+			if (1) { // Michelle
 				loader.load( _threeJsUrl + 'examples/models/gltf/Michelle.glb', function ( gltf ) {
 					const model = gltf.scene;
-					model.position.set( 0, -0.95, 0 ); // in center
+					//model.position.set( 0, -0.95, 0 ); // in center
 					//model.position.set( 1, -0.95, 2 ); // near the kiosk
+					
+					model.position.set( -0.25, -0.95, 0.9 ); // under the poster
+
 					model.scale.set( 0.3, 0.3, 0.3 );
 					_scene.add( model );
 
 					const mixer = new THREE.AnimationMixer( model );
-					mixer.clipAction( gltf.animations[ 0 ] ).play();
+					// duration 10, bpm 106.6
+					mixer.clipAction( gltf.animations[ 0 ] ).setEffectiveTimeScale( 72/106.6 ).play();
 					_mixers.push(mixer);
 
 				}, undefined, function ( e ) {
@@ -225,90 +226,209 @@
 			//-------------------------------------------------------------------------
 			// Move camera along a curve
 
+			function makeCyclicInterpolant(sampleSize, data) {
+				// data format (for sampleSize 3): [
+				//		t0, v00, v01, v02,
+				//		t1, v10, v11, v12,... ]
+
+				const numSamples = data.length / (1 + sampleSize);
+				
+				// for smooth cycling just repeat the data into 3 partitions: [-1..0)[0..1)[1..2)
+				const sampleTimes  = new Float32Array(3 * numSamples);
+				const sampleValues = new Float32Array(3 * numSamples * sampleSize);
+
+				for (let p = 0; p < 3; p++) { // partition (0,1,2)
+					for (let i = 0; i < numSamples; i++) {
+						const s = i * (1 + sampleSize); // sample source shift
+						const t = p * numSamples + i; // sample target shift
+						// times
+						sampleTimes[t] = data[s + 0] + (p - 1.0);
+						// values
+						for (let j = 0; j < sampleSize; j++) {
+							sampleValues[t * sampleSize + j] = data[s + 1 + j];
+						}
+					}
+				}
+
+				return new THREE.CubicInterpolant(sampleTimes, sampleValues, sampleSize);
+			}
+
+			if (0) { // test Cyclic Interpolant
+				const interpolant = makeCyclicInterpolant(1, [
+					0.0,	0.5,
+					0.1,	1.0,
+					0.9,	0.6,
+				]);
+
+				/*
+				const parameterPositions = [0.0, 0.1, 0.9, 1.0]; // The times
+				const sampleValues       = [0.5, 1.0, 0.6, 0.5]; // The values
+
+				// Create the interpolator
+				const interpolant = new THREE.CubicInterpolant(
+					parameterPositions,
+					sampleValues,
+					1, // sampleSize: 1 for a single number
+					[] // resultBuffer: an empty array to store the result
+				);
+				*/
+
+				const count = 0;
+				for (let i = 0; i <= count; i++) {
+					const t = i/count; // 0..1
+					const v = interpolant.evaluate(t)[0];
+					console.log('#'.repeat(v * 100), t, v);
+				}
+
+			}
+
+			const _useCameraCurve = 1; // apply curve values to camera
+			let _cameraCurvePhase = 0.0; // [0..1)
+			
+			const _playCameraCurve = 1;
+			const _playCameraCurveSpeed = 2 / 33; // cycles per second
+
 			//const _cameraTarget = new THREE.Vector3(0, -0.75, 0);
-			const _cameraTarget = new THREE.Vector3(-0.05, -0.75, -0.05);
+			//const _cameraTarget = new THREE.Vector3(-0.05, -0.75, -0.05);
+			const _cameraTarget = new THREE.Vector3(-0.25, -0.75, 0.9); // Girl near the poster
 
-			const cameraPoints = [
+			const _cameraPositionCurve = new THREE.CatmullRomCurve3([
 				//_cameraTarget,
-				
-				new THREE.Vector3(0.1, -0.75, 0.1), // O
-				
-				new THREE.Vector3(-0.2, -0.75, 0.8), // A
-				new THREE.Vector3(-0.2, 0.0, 2.0), // B
 
-				new THREE.Vector3(2.5, 1.0, 2.5), // C
+				new THREE.Vector3(-0.15, -0.75, 1.2), // O
+				new THREE.Vector3(-0.2, -0.7, 2.0), // A
+				new THREE.Vector3( 0.0, -0.1, 3.0), // B
+
+				new THREE.Vector3(3.5, 4.0, 3.5), // C
 
 				new THREE.Vector3(2.0, 0.0, -0.2), // B'
 				new THREE.Vector3(0.8, -0.75, -0.2), // A'
+
+				new THREE.Vector3(0.05, -0.75, 0.05), // O'
+			], true, 'chordal');
+			const _cameraTargetInterpolant = makeCyclicInterpolant(3, [
+				0.0,	-0.25, -0.75, 0.9,
+				0.15,	-0.25, -0.75, 0.9,
+				0.45,	-0.25, -0.25, 0.9,
+				0.5,	-0.25, -0.25, 0.9,
+				//0.6,	 1.0, 0.0, 0.0,
+				0.75,	 0.5, 0.0, -0.5,
+				0.9,	 0.0, -0.75, 0.0,
+			]);
+			const _cameraPerspectiveInterpolant = makeCyclicInterpolant(1, [
+				0.0,	2.0,
+				0.2,	-0.5,
+				0.5,	-0.5,
+				0.7,	0.7,
+				0.8,	1.5,
+			]);
+			const _cameraZoomEInterpolant = makeCyclicInterpolant(1, [
+				0.0,	0.9,
+				0.4,	-1.0,
+				0.45,	-1.5,
+				0.7,	-1.0,
+				0.8,	0.5,
+			]);
+
+			/*
+			const cameraTargetPoints = [
+				_cameraTarget,
+				_cameraTarget,
+				_cameraTarget,
+				_cameraTarget,
+				new THREE.Vector3(-0.25, 0.0, 0.9),
+				new THREE.Vector3(0.8, -0.75, -0.2), // A'
+				new THREE.Vector3(0.8, -0.75, -0.2), // A'
+				//new THREE.Vector3(0.1, -0.75, 0.1), // O'
+				_cameraTarget,
 			];
 
-			const _cameraCurve = new THREE.CatmullRomCurve3(cameraPoints, true, 
-				//'centripetal');
-				'chordal');
-				//'catmullrom', 0.5);
+			const cameraOptionsPoints = [
+				//                persp        zoom
+				new THREE.Vector3( 2.0,  3.0,  1.0),
+				new THREE.Vector3(-0.7,  3.0,  1.0),
+				new THREE.Vector3(-0.8,  3.0, -2.0),
+				new THREE.Vector3( 2.0,  3.0,  1.0),
+			];
 
-			if (0) {  // Add markers for debug
-				const markerGeometry = new THREE.SphereGeometry(0.1, 4, 4); // Small sphere
-				const markerMaterial = new THREE.MeshBasicMaterial({ color: 0xFF0000 }); // Bright red for visibility
-				cameraPoints.forEach((point, index) => {
-					const m = new THREE.Mesh(markerGeometry, markerMaterial);
-					m.position.copy(point);
-					//m.name = `PathPoint_${index}`;
-					_scene.add(m);
-				});
-			}
-			if (1) {
-				const marker2Geometry = new THREE.SphereGeometry(0.01, 4, 4);
-				const marker2Material = new THREE.MeshBasicMaterial({ color: 0x00FF00 });
-				const count = 48;
-				for (let i = 0; i < count; ++i) {
-					const t = i / count;
-					const point = _cameraCurve.getPointAt(t);
-					//const point = _cameraCurve.getPoint(t);
-					
-					const m = new THREE.Mesh(marker2Geometry, marker2Material);
-					m.position.copy(point);
-					_scene.add(m);
-				}
-			}
+			const _cameraTargetCurve = new THREE.CatmullRomCurve3(cameraTargetPoints, true, 'chordal');
+			const _cameraOptionsCurve = new THREE.CatmullRomCurve3(cameraOptionsPoints, true, 'chordal');
+			*/
 
-			const _useCameraCurve = 1;
-			let _cameraCurvePhase = 0.0; // [0..1)
-			
-			let _cameraPerspectiveE = 1.5; //!!! temp
-			let _cameraZoomE = 1.0; //!!! temp
-			
-			const _playCameraCurve = 0;
-			const _playCameraCurveSpeed = 0.1; // cycles per second
-
+			// Markers
 			let _cameraMarker;
+			let _targetMarker;
 			if (0) {
-				const cameraMarkerGeometry = new THREE.SphereGeometry(0.1, 4, 4);
-				const cameraMarkerMaterial = new THREE.MeshBasicMaterial({ color: 0xFF7700 }); // Bright red for visibility
-				_cameraMarker = new THREE.Mesh(cameraMarkerGeometry, cameraMarkerMaterial);
-				_scene.add(_cameraMarker);
+				const markerGeometry = new THREE.SphereGeometry(0.1, 4, 4);
+				if (1 && !_useCameraCurve) {
+					const material = new THREE.MeshBasicMaterial({ color: 0x0077FF });
+					_cameraMarker = new THREE.Mesh(markerGeometry, material);
+					_scene.add(_cameraMarker);
+				}
+				if (1) {
+					const material = new THREE.MeshBasicMaterial({ color: 0x0000FF });
+					_targetMarker = new THREE.Mesh(markerGeometry, material);
+					_targetMarker.position.copy(_cameraTarget);
+					_scene.add(_targetMarker);
+				}
+				if (1) { // camera raw points
+					const material = new THREE.MeshBasicMaterial({ color: 0xFF0000 }); // red
+					_cameraPositionCurve.points.forEach((point, index) => {
+						const m = new THREE.Mesh(markerGeometry, material);
+						m.position.copy(point);
+						m.scale.multiplyScalar(0.5);
+						_scene.add(m);
+					});
+				}
+				if (1) { // camera interpolated points
+					const material = new THREE.MeshBasicMaterial({ color: 0x00FF00 }); // green
+					const count = 48;
+					for (let i = 0; i < count; ++i) {
+						const t = i / count;
+						const point = _cameraPositionCurve.getPointAt(t); // space uniform
+						//const point = _cameraPositionCurve.getPoint(t); // points uniform
+						
+						const m = new THREE.Mesh(markerGeometry, material);
+						m.position.copy(point);
+						m.scale.multiplyScalar(i % (count / 8) == 0 ? 0.5 : 0.2);
+						_scene.add(m);
+					}
+				}
 			}
 
 			function updateCamera() {
 
-				// Position
-				const pos = _cameraCurve.getPointAt(_cameraCurvePhase);
-				_camera.position.copy(pos);
-				_camera.lookAt(_cameraTarget);
-				//_camera.updateMatrixWorld(); // updated in lookAt
-				//_cameraMarker.position.copy(pos);
-				
-				// Projection
-				_camera.focus = _cameraTarget.clone().sub(pos).length();
+				const pos           = _cameraPositionCurve.getPointAt(_cameraCurvePhase);
+				const target        = new THREE.Vector3(... _cameraTargetInterpolant.evaluate(_cameraCurvePhase));
+				const perspective   = _cameraPerspectiveInterpolant.evaluate(_cameraCurvePhase)[0];
+				const zoomE         = _cameraZoomEInterpolant.evaluate(_cameraCurvePhase)[0];
 
-				// https://www.wolframalpha.com/input?i=(cos(x)^2)^3%20for%20x=0..pi
-				let c = Math.cos(_cameraCurvePhase * Math.PI); c *= c; // 1..0..1
-				_camera.perspective        = THREE.MathUtils.lerp(-0.5, 0.5, Math.pow(c, Math.pow(2, _cameraPerspectiveE)));
-				_camera.zoom = Math.pow(2.0, THREE.MathUtils.lerp(-2.0, 2.0, Math.pow(c, Math.pow(2, _cameraZoomE))));
-				
-				_camera.updateProjectionMatrix();
+				if (_useCameraCurve) {
+					// Position
+					_camera.position.copy(pos);
+					_camera.lookAt(target);
+					//_camera.updateMatrixWorld(); // updated in lookAt
+					
+					// Projection
+					const focus = target.clone().sub(pos).length();
+					_camera.focus = focus;
+					_camera.near  = focus - 4;
+					_camera.far   = focus + 4;
+					_camera.perspective = perspective;
+					_camera.zoom = Math.pow(2.0, zoomE);
+					_camera.updateProjectionMatrix();
 
-				//console.log("update camera", "phase:", _cameraCurvePhase, "perspective:", _camera.perspective, "zoom:", _camera.zoom);
+				} else {
+					if (_cameraMarker) {
+						_cameraMarker.position.copy(pos);
+					}
+				}
+
+				if (_targetMarker) {
+					_targetMarker.position.copy(target);
+				}
+
+				console.log("update camera", "phase:", _cameraCurvePhase, "perspective:", perspective, "zoomE:", zoomE);
 				//console.log("update camera", "phase:", _cameraCurvePhase, "pos:", pos, "look at:", _cameraTarget, "focus:", _camera.focus);
 			}
 
@@ -348,30 +468,24 @@
 					if (e.buttons == 1) {
 						if (e.ctrlKey) {
 							_camera.perspective = (nX - 0.5) * 3;
-							console.log("set camera perspective", _camera.perspective);
 							_camera.updateProjectionMatrix();
+							console.log("set camera perspective", _camera.perspective);
 						}
 						else if (e.shiftKey) {
-							if (_useCameraCurve) {
-								_cameraPerspectiveE = (nY - 0.5) * 4;
-								_cameraZoomE        = (nX - 0.5) * 4;
-								console.log("camera persp e:", _cameraPerspectiveE, "zoom e:", _cameraZoomE);
-							} else {
-								_camera.focus = (nX - 0.5) * 5;
-								console.log("set camera focus", _camera.focus);
-								_camera.updateProjectionMatrix();
-							}
+							_camera.focus = (nX - 0.5) * 5;
+							_camera.updateProjectionMatrix();
+							console.log("set camera focus", _camera.focus);
 						}
 						else if (e.altKey) {
 							_camera.zoom = nX * 3;
-							console.log("set camera zoom", _camera.zoom);
 							_camera.updateProjectionMatrix();
+							console.log("set camera zoom", _camera.zoom);
 						}
 						else {
-							if (_useCameraCurve) {
-								_cameraCurvePhase += 1.0 - dX;
-								_cameraCurvePhase %= 1.0;
-							}
+							_cameraCurvePhase += 1.0 - dX;
+							_cameraCurvePhase %= 1.0;
+							console.log("camera phase", _cameraCurvePhase);
+							updateCamera();
 						}
 					}
 				}
@@ -383,6 +497,12 @@
 				             e.code == 'ArrowDown'  ? -1 : 0;
 				if (dirX || dirY) {
 					e.preventDefault();
+
+					_cameraCurvePhase += 1.0 + 0.01 * dirX;
+					_cameraCurvePhase %= 1.0;
+					console.log("camera phase", _cameraCurvePhase);
+					updateCamera();
+
 					//_flyingSpeedX += 0.05 * dirX;
 					//_flyingSpeedY += 0.05 * dirY;
 				} else if (e.code == 'End') {
@@ -408,8 +528,8 @@
 					if (_playCameraCurve) {
 						_cameraCurvePhase += delta * _playCameraCurveSpeed;
 						_cameraCurvePhase %= 1.0;
+						updateCamera();
 					}
-					updateCamera();
 				}
 
 				if (_useOrbitControls) {
