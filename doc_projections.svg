@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="134.44206mm"
+   height="193.0472mm"
+   viewBox="0 0 134.44206 193.0472"
+   version="1.1"
+   id="svg12390"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs12387">
+    <marker
+       style="overflow:visible"
+       id="TriangleStart"
+       refX="0"
+       refY="0"
+       orient="auto-start-reverse"
+       markerWidth="5.3244081"
+       markerHeight="6.155385"
+       viewBox="0 0 5.3244081 6.1553851"
+       preserveAspectRatio="xMidYMid">
+      <path
+         transform="scale(0.5)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 5.77,0 -2.88,5 V -5 Z"
+         id="path135" />
+    </marker>
+  </defs>
+  <g
+     id="layer1"
+     transform="translate(-12.831312,-12.408381)">
+    <path
+       style="font-variation-settings:'wght' 900;fill:none;stroke:#808080;stroke-width:0.4;stroke-linecap:round;stroke-dasharray:none;paint-order:markers fill stroke"
+       d="m 47.164047,32.685864 v 20 l 60.000003,20 V 12.685866 Z"
+       id="path1184" />
+    <path
+       style="font-variation-settings:'wght' 900;fill:#00ffff;stroke:#808080;stroke-width:0.4;stroke-linecap:round;stroke-dasharray:none;marker-start:url(#TriangleStart);paint-order:markers fill stroke"
+       d="M 37.164047,42.685864 H 117.16405"
+       id="path251" />
+    <path
+       style="font-variation-settings:'wght' 900;fill:#808080;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-dasharray:none;paint-order:markers fill stroke"
+       d="M 77.164047,22.685866 V 62.685864"
+       id="path3072" />
+    <path
+       style="font-variation-settings:'wght' 900;fill:#808080;stroke:#808080;stroke-width:0.4;stroke-linecap:butt;stroke-dasharray:0.8, 0.8;stroke-dashoffset:0;paint-order:markers fill stroke"
+       d="m 97.164047,22.685866 h -20"
+       id="path3074" />
+    <path
+       style="font-variation-settings:'wght' 900;fill:none;stroke:#808080;stroke-width:0.4;stroke-linecap:round;stroke-dasharray:none;paint-order:markers fill stroke"
+       d="M 47.164047,82.685864 V 122.68586 H 107.16405 V 82.685864 Z"
+       id="path3080" />
+    <path
+       style="font-variation-settings:'wght' 900;fill:#00ffff;stroke:#808080;stroke-width:0.4;stroke-linecap:round;stroke-dasharray:none;marker-start:url(#TriangleStart);paint-order:markers fill stroke"
+       d="M 37.164047,102.88586 H 117.16405"
+       id="path3082" />
+    <path
+       style="font-variation-settings:'wght' 900;fill:#808080;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-dasharray:none;paint-order:markers fill stroke"
+       d="M 77.164047,82.885864 V 122.88586"
+       id="path3084" />
+    <path
+       style="font-variation-settings:'wght' 900;fill:none;stroke:#808080;stroke-width:0.4;stroke-linecap:round;stroke-dasharray:none;paint-order:markers fill stroke"
+       d="m 47.164047,132.68586 v 60 l 60.000003,-20 v -20 z"
+       id="path3092" />
+    <path
+       style="font-variation-settings:'wght' 900;fill:#00ffff;stroke:#808080;stroke-width:0.4;stroke-linecap:round;stroke-dasharray:none;marker-start:url(#TriangleStart);paint-order:markers fill stroke"
+       d="M 37.164047,162.88586 H 117.16405"
+       id="path3094" />
+    <path
+       style="font-variation-settings:'wght' 900;fill:#808080;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-dasharray:none;paint-order:markers fill stroke"
+       d="m 77.164047,142.88586 v 40"
+       id="path3096" />
+    <path
+       style="font-variation-settings:'wght' 900;fill:#808080;stroke:#808080;stroke-width:0.4;stroke-linecap:butt;stroke-dasharray:0.8, 0.8;stroke-dashoffset:0;paint-order:markers fill stroke"
+       d="m 97.164047,142.48586 h -20"
+       id="path3098" />
+    <g
+       id="g3110"
+       style="stroke-width:3;stroke-dasharray:none"
+       transform="matrix(0.08333334,0,0,0.08333334,-10.377023,95.803384)">
+      <rect
+         style="font-variation-settings:'wght' 900;fill:#808080;stroke:#808080;stroke-width:3;stroke-linecap:round;stroke-dasharray:none;paint-order:markers fill stroke"
+         id="rect3102"
+         width="100"
+         height="60"
+         x="280"
+         y="50"
+         ry="10" />
+      <path
+         style="font-variation-settings:'wght' 900;fill:#808080;stroke:#808080;stroke-width:3;stroke-linecap:round;stroke-dasharray:none;paint-order:markers fill stroke"
+         d="m 420,50 v 60 L 370,80 Z"
+         id="path3104" />
+      <circle
+         style="font-variation-settings:'wght' 900;fill:#808080;stroke:#808080;stroke-width:3;stroke-linecap:round;stroke-dasharray:none;paint-order:markers fill stroke"
+         id="circle3106"
+         cx="349.79999"
+         cy="30.200001"
+         r="20" />
+      <circle
+         style="font-variation-settings:'wght' 900;fill:#808080;stroke:#808080;stroke-width:3;stroke-linecap:round;stroke-dasharray:none;paint-order:markers fill stroke"
+         id="circle3108"
+         cx="304.99997"
+         cy="35"
+         r="15" />
+    </g>
+    <g
+       id="g3120"
+       style="stroke-width:3;stroke-dasharray:none"
+       transform="matrix(0.08333334,0,0,0.08333334,-10.377023,155.99156)">
+      <rect
+         style="font-variation-settings:'wght' 900;fill:#808080;stroke:#808080;stroke-width:3;stroke-linecap:round;stroke-dasharray:none;paint-order:markers fill stroke"
+         id="rect3112"
+         width="100"
+         height="60"
+         x="280"
+         y="50"
+         ry="10" />
+      <path
+         style="font-variation-settings:'wght' 900;fill:#808080;stroke:#808080;stroke-width:3;stroke-linecap:round;stroke-dasharray:none;paint-order:markers fill stroke"
+         d="m 420,50 v 60 L 370,80 Z"
+         id="path3114" />
+      <circle
+         style="font-variation-settings:'wght' 900;fill:#808080;stroke:#808080;stroke-width:3;stroke-linecap:round;stroke-dasharray:none;paint-order:markers fill stroke"
+         id="circle3116"
+         cx="349.79999"
+         cy="30.200001"
+         r="20" />
+      <circle
+         style="font-variation-settings:'wght' 900;fill:#808080;stroke:#808080;stroke-width:3;stroke-linecap:round;stroke-dasharray:none;paint-order:markers fill stroke"
+         id="circle3118"
+         cx="304.99997"
+         cy="35"
+         r="15" />
+    </g>
+    <path
+       style="font-variation-settings:'wght' 900;fill:#0000ff;stroke:#000000;stroke-width:0.7;stroke-linecap:butt;stroke-dasharray:none;stroke-dashoffset:0;paint-order:markers fill stroke"
+       d="m 77.121707,22.812886 19.95819,-6.65273"
+       id="path4661" />
+    <path
+       style="font-variation-settings:'wght' 900;fill:#0000ff;stroke:#000000;stroke-width:0.7;stroke-linecap:butt;stroke-dasharray:none;stroke-dashoffset:0;paint-order:markers fill stroke"
+       d="m 77.164047,82.685864 h 20"
+       id="path4672" />
+    <path
+       style="font-variation-settings:'wght' 900;fill:#0000ff;stroke:#000000;stroke-width:0.7;stroke-linecap:butt;stroke-dasharray:none;stroke-dashoffset:0;paint-order:markers fill stroke"
+       d="m 77.127017,142.57477 19.96338,6.65446"
+       id="path4674" />
+    <text
+       xml:space="preserve"
+       style="font-size:4.89153px;line-height:0.7;font-family:Rubik;-inkscape-font-specification:'Rubik, @wght=900';font-variation-settings:'wght' 900;fill:#0000ff;stroke:#000000;stroke-width:0.0970606;stroke-linecap:butt;stroke-dasharray:none;stroke-dashoffset:0;paint-order:markers fill stroke"
+       x="47.036251"
+       y="200.97119"
+       id="text4730"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Calibri;-inkscape-font-specification:Calibri;text-align:center;text-anchor:middle;fill:#808080;stroke:none;stroke-width:0.0970606"
+         x="47.036251"
+         y="200.97119"
+         id="tspan4732">near clip</tspan><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Calibri;-inkscape-font-specification:Calibri;text-align:center;text-anchor:middle;fill:#808080;stroke:none;stroke-width:0.0970606"
+         x="47.036251"
+         y="204.58618"
+         id="tspan4902">plane</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:4.89153px;line-height:0.7;font-family:Rubik;-inkscape-font-specification:'Rubik, @wght=900';font-variation-settings:'wght' 900;fill:#0000ff;stroke:#000000;stroke-width:0.0970606;stroke-linecap:butt;stroke-dasharray:none;stroke-dashoffset:0;paint-order:markers fill stroke"
+       x="106.82217"
+       y="200.97119"
+       id="text4840"><tspan
+         id="tspan4836"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Calibri;-inkscape-font-specification:Calibri;text-align:center;text-anchor:middle;fill:#808080;stroke:none;stroke-width:0.0970606"
+         x="106.82217"
+         y="200.97119">far clip</tspan><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Calibri;-inkscape-font-specification:Calibri;text-align:center;text-anchor:middle;fill:#808080;stroke:none;stroke-width:0.0970606"
+         x="106.82217"
+         y="204.58618"
+         id="tspan4838">plane</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:4.89153px;line-height:0.7;font-family:Rubik;-inkscape-font-specification:'Rubik, @wght=900';font-variation-settings:'wght' 900;fill:#0000ff;stroke:#000000;stroke-width:0.0970606;stroke-linecap:butt;stroke-dasharray:none;stroke-dashoffset:0;paint-order:markers fill stroke"
+       x="77.05587"
+       y="200.97119"
+       id="text4898"><tspan
+         id="tspan4894"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Calibri;-inkscape-font-specification:Calibri;text-align:center;text-anchor:middle;fill:#808080;stroke:none;stroke-width:0.0970606"
+         x="77.05587"
+         y="200.97119">focus</tspan><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Calibri;-inkscape-font-specification:Calibri;text-align:center;text-anchor:middle;fill:#808080;stroke:none;stroke-width:0.0970606"
+         x="77.05587"
+         y="204.58618"
+         id="tspan4896">plane</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-dasharray:none;stroke-dashoffset:0;paint-order:markers fill stroke"
+       id="path5023"
+       d="m 87.16404,142.68585 a 10,10 0 0 1 -0.476077,3.04875" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.7;stroke-linecap:butt;stroke-dasharray:none;stroke-dashoffset:0;paint-order:markers fill stroke"
+       id="path5077"
+       d="m 87.16404,-22.685867 a 10,10 0 0 1 -0.476077,3.048752"
+       transform="scale(1,-1)" />
+    <text
+       xml:space="preserve"
+       style="font-size:4.89153px;line-height:0.7;font-family:Rubik;-inkscape-font-specification:'Rubik, @wght=900';font-variation-settings:'wght' 900;fill:#0000ff;stroke:#000000;stroke-width:0.0970606;stroke-linecap:butt;stroke-dasharray:none;stroke-dashoffset:0;paint-order:markers fill stroke"
+       x="134.60388"
+       y="42.072563"
+       id="text5137"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Calibri;-inkscape-font-specification:Calibri;text-align:center;text-anchor:middle;fill:#808080;stroke:none;stroke-width:0.0970606"
+         x="134.60388"
+         y="42.072563"
+         id="tspan5135">direct</tspan><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Calibri;-inkscape-font-specification:Calibri;text-align:center;text-anchor:middle;fill:#808080;stroke:none;stroke-width:0.0970606"
+         x="134.60388"
+         y="45.68755"
+         id="tspan5243">perspective</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:4.89153px;line-height:0.7;font-family:Rubik;-inkscape-font-specification:'Rubik, @wght=900';font-variation-settings:'wght' 900;fill:#0000ff;stroke:#000000;stroke-width:0.0970606;stroke-linecap:butt;stroke-dasharray:none;stroke-dashoffset:0;paint-order:markers fill stroke"
+       x="134.60388"
+       y="102.61901"
+       id="text5249"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Calibri;-inkscape-font-specification:Calibri;text-align:center;text-anchor:middle;fill:#808080;stroke:none;stroke-width:0.0970606"
+         x="134.60388"
+         y="102.61901"
+         id="tspan5247">orthographic</tspan><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Calibri;-inkscape-font-specification:Calibri;text-align:center;text-anchor:middle;fill:#808080;stroke:none;stroke-width:0.0970606"
+         x="134.60388"
+         y="106.23399"
+         id="tspan5991">projection</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:4.89153px;line-height:0.7;font-family:Rubik;-inkscape-font-specification:'Rubik, @wght=900';font-variation-settings:'wght' 900;fill:#0000ff;stroke:#000000;stroke-width:0.0970606;stroke-linecap:butt;stroke-dasharray:none;stroke-dashoffset:0;paint-order:markers fill stroke"
+       x="134.60388"
+       y="162.26978"
+       id="text5997"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Calibri;-inkscape-font-specification:Calibri;text-align:center;text-anchor:middle;fill:#808080;stroke:none;stroke-width:0.0970606"
+         x="134.60388"
+         y="162.26978"
+         id="tspan5995">reverse</tspan><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Calibri;-inkscape-font-specification:Calibri;text-align:center;text-anchor:middle;fill:#808080;stroke:none;stroke-width:0.0970606"
+         x="134.60388"
+         y="165.88477"
+         id="tspan6739">perspective</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:4.89153px;line-height:0.7;font-family:Rubik;-inkscape-font-specification:'Rubik, @wght=900';font-variation-settings:'wght' 900;fill:#0000ff;stroke:#000000;stroke-width:0.0970606;stroke-linecap:butt;stroke-dasharray:none;stroke-dashoffset:0;paint-order:markers fill stroke"
+       x="100.74082"
+       y="20.576599"
+       id="text6745"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Calibri;-inkscape-font-specification:Calibri;text-align:center;text-anchor:middle;fill:#808080;stroke:none;stroke-width:0.0970606"
+         x="100.74082"
+         y="20.576599"
+         id="tspan6743">p &gt; 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:4.89153px;line-height:0.7;font-family:Rubik;-inkscape-font-specification:'Rubik, @wght=900';font-variation-settings:'wght' 900;fill:#0000ff;stroke:#000000;stroke-width:0.0970606;stroke-linecap:butt;stroke-dasharray:none;stroke-dashoffset:0;paint-order:markers fill stroke"
+       x="100.15096"
+       y="87.057426"
+       id="text6751"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Calibri;-inkscape-font-specification:Calibri;text-align:center;text-anchor:middle;fill:#808080;stroke:none;stroke-width:0.0970606"
+         x="100.15096"
+         y="87.057426"
+         id="tspan6749">p == 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:4.89153px;line-height:0.7;font-family:Rubik;-inkscape-font-specification:'Rubik, @wght=900';font-variation-settings:'wght' 900;fill:#0000ff;stroke:#000000;stroke-width:0.0970606;stroke-linecap:butt;stroke-dasharray:none;stroke-dashoffset:0;paint-order:markers fill stroke"
+       x="100.53097"
+       y="146.72993"
+       id="text6755"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Calibri;-inkscape-font-specification:Calibri;text-align:center;text-anchor:middle;fill:#808080;stroke:none;stroke-width:0.0970606"
+         x="100.53097"
+         y="146.72993"
+         id="tspan6753">p &lt; 0</tspan></text>
+    <path
+       id="rect2999"
+       style="font-variation-settings:'wght' 900;fill:#808080;stroke:#808080;stroke-width:0.25;stroke-linecap:round;stroke-dasharray:none;paint-order:markers fill stroke"
+       d="m 18.773057,36.867664 a 1.6666668,1.6666668 0 0 0 -1.66656,1.66657 1.6666668,1.6666668 0 0 0 1.54099,1.65003 h -3.60805 -1.24954 c -0.46166,0 -0.83354,0.37135 -0.83354,0.83302 v 3.33365 c 0,0.46166 0.37188,0.83302 0.83354,0.83302 h 6.66626 c 0.46167,0 0.83355,-0.37136 0.83355,-0.83302 v -1.16634 l 3.33313,1.99936 v -4.99969 l -3.33313,1.99987 v -1.16685 c 0,-0.46167 -0.37188,-0.83302 -0.83355,-0.83302 h -1.55752 a 1.6666668,1.6666668 0 0 0 1.54099,-1.65003 1.6666668,1.6666668 0 0 0 -1.66657,-1.66657 z m -3.73362,3.3166 a 1.2500001,1.2500001 0 0 0 1.25005,-1.25006 1.2500001,1.2500001 0 0 0 -1.25005,-1.25005 1.2500001,1.2500001 0 0 0 -1.25005,1.25005 1.2500001,1.2500001 0 0 0 1.25005,1.25006 z" />
+  </g>
+</svg>
