@@ -4,7 +4,6 @@
 		<title>reverse perspective camera - three.js</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-		<link type="text/css" rel="stylesheet" href="main.css">
 		<style>
 			body { font-family: Monospace; background-color: #bfe3dd; margin: 0; overflow: hidden; }
 			canvas { display: block; }
@@ -365,13 +364,18 @@
 			// Mouse control
 
 			let _prevMouseX = 0, _prevMouseY = 0;
+			let _mouseIsPressed = false;
 
 			const canvas = _renderer.domElement;
 			canvas.addEventListener('mousedown', (e) => {
 				if (e.buttons) {
 					_prevMouseX = e.clientX;
 					_prevMouseY = e.clientY;
+					_mouseIsPressed = true;
 				}
+			});
+			document.addEventListener('mouseup', (e) => {
+				_mouseIsPressed = false;
 			});
 			canvas.addEventListener('mousemove', (e) => {
 				if (e.buttons) {
@@ -438,7 +442,7 @@
 				}
 
 				if (_useCameraCurve) {
-					if (_playCameraCurve) {
+					if (_playCameraCurve && !_mouseIsPressed) {
 						_cameraCurvePhase += delta * _playCameraCurveSpeed;
 						_cameraCurvePhase %= 1.0;
 						updateCamera();
