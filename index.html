@@ -1,19 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>three.js webgl - animation - keyframes</title>
+		<title>reverse perspective camera - three.js</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<link type="text/css" rel="stylesheet" href="main.css">
 		<style>
-			body {
-				background-color: #bfe3dd;
-				color: #000;
-			}
-
-			a {
-				color: #2983ff;
-			}
+			body { font-family: Monospace; background-color: #bfe3dd; margin: 0; overflow: hidden; }
+			canvas { display: block; }
+			#info { position: absolute; top: 0px; width: 100%; padding: 10px; text-align: center; }
 		</style>
 	</head>
 
@@ -21,13 +16,11 @@
 
 		<div id="container"></div>
 
-		<!--
 		<div id="info">
-			<a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> webgl - animation - keyframes<br/>
-			Model: <a href="https://artstation.com/artwork/1AGwX" target="_blank" rel="noopener">Littlest Tokyo</a> by
-			<a href="https://artstation.com/glenatron" target="_blank" rel="noopener">Glen Fox</a>, CC Attribution.
+			<a href="https://github.com/bntre/reverse-perspective-threejs" target="_blank" rel="noopener">Sources</a>.
+			Models: <a href="https://www.mixamo.com/#/?query=Michelle&type=Character" target="_blank" rel="noopener">Michelle</a> by Mixamo, 
+			<a href="https://artstation.com/artwork/1AGwX" target="_blank" rel="noopener">Littlest Tokyo</a> by Glen Fox.
 		</div>
-		-->
 
 		<script type="importmap">
 			{
@@ -67,29 +60,21 @@
 				updateProjectionMatrix() {
 					if (this.perspective === undefined) return; // called from super constructor - ignore
 
-					const size = 1 / this.zoom; // height half-size ?
+					const size = 1 / this.zoom; // use as height half-size
 					const aspect = this.aspect;
 					const p = this.perspective / size;
 
-					let n = this.near - this.focus; // in local space (n is negative, f is positive)
+					let n = this.near - this.focus; // we put the camera to the focus plane (n is negative, f is positive)
 					let f = this.far  - this.focus;
 
-					/*
-					*/
 					// keep projection center out of clip range
 					if (p > 0) {
-						n = Math.max(n, -1 / p + 0.001); //!!! use epsilon
+						n = Math.max(n, -1 / p + 0.01);
 					} else if (p < 0) {
-						f = Math.min(f, -1 / p - 0.001);
+						f = Math.min(f, -1 / p - 0.01);
 					}
 
-					//	0	1	2	3    temp
-					//	4	5	6	7
-					//	8	9	10	11
-					//	12	13	14	15
-
-
-					const mP = new THREE.Matrix4(); // identity
+					const mP = new THREE.Matrix4();
 					const me = mP.elements;
 					me[0] = 1 / (size * aspect);
 					me[5] = 1 / size;
@@ -98,8 +83,9 @@
 					me[11] = -p;
 					me[15] = 1;
 
-					/*
-					*/
+					// For more information about projection matrices: https://www.songho.ca/opengl/gl_projectionmatrix.html
+
+					// put the camera to the focus plane
 					const mT = new THREE.Matrix4();
 					mT.makeTranslation(0, 0, this.focus);
 					mP.multiply(mT);
@@ -181,8 +167,6 @@
 				loader.load( _threeJsUrl + 'examples/models/gltf/LittlestTokyo.glb', function ( gltf ) {
 
 					const model = gltf.scene;
-					//model.position.set( 1, 1, 0 );
-					//model.position.set( 0, 1, 0 );
 					model.position.set( 0.2, 1, -0.2 );
 					model.scale.set( 0.01, 0.01, 0.01 );
 					_scene.add( model );
@@ -202,16 +186,12 @@
 			if (1) { // Michelle
 				loader.load( _threeJsUrl + 'examples/models/gltf/Michelle.glb', function ( gltf ) {
 					const model = gltf.scene;
-					//model.position.set( 0, -0.95, 0 ); // in center
-					//model.position.set( 1, -0.95, 2 ); // near the kiosk
-					
 					model.position.set( -0.25, -0.95, 0.9 ); // under the poster
-
 					model.scale.set( 0.3, 0.3, 0.3 );
 					_scene.add( model );
 
 					const mixer = new THREE.AnimationMixer( model );
-					// duration 10, bpm 106.6
+					// duration 10, dance bpm 106.6
 					mixer.clipAction( gltf.animations[ 0 ] ).setEffectiveTimeScale( 72/106.6 ).play();
 					_mixers.push(mixer);
 
@@ -253,48 +233,13 @@
 				return new THREE.CubicInterpolant(sampleTimes, sampleValues, sampleSize);
 			}
 
-			if (0) { // test Cyclic Interpolant
-				const interpolant = makeCyclicInterpolant(1, [
-					0.0,	0.5,
-					0.1,	1.0,
-					0.9,	0.6,
-				]);
-
-				/*
-				const parameterPositions = [0.0, 0.1, 0.9, 1.0]; // The times
-				const sampleValues       = [0.5, 1.0, 0.6, 0.5]; // The values
-
-				// Create the interpolator
-				const interpolant = new THREE.CubicInterpolant(
-					parameterPositions,
-					sampleValues,
-					1, // sampleSize: 1 for a single number
-					[] // resultBuffer: an empty array to store the result
-				);
-				*/
-
-				const count = 0;
-				for (let i = 0; i <= count; i++) {
-					const t = i/count; // 0..1
-					const v = interpolant.evaluate(t)[0];
-					console.log('#'.repeat(v * 100), t, v);
-				}
-
-			}
-
 			const _useCameraCurve = 1; // apply curve values to camera
 			let _cameraCurvePhase = 0.0; // [0..1)
 			
 			const _playCameraCurve = 1;
 			const _playCameraCurveSpeed = 2 / 33.15; // cycles per second
 
-			//const _cameraTarget = new THREE.Vector3(0, -0.75, 0);
-			//const _cameraTarget = new THREE.Vector3(-0.05, -0.75, -0.05);
-			const _cameraTarget = new THREE.Vector3(-0.25, -0.75, 0.9); // Girl near the poster
-
 			const _cameraPositionCurve = new THREE.CatmullRomCurve3([
-				//_cameraTarget,
-
 				new THREE.Vector3(-0.15, -0.75, 1.2), // O
 				new THREE.Vector3(-0.2, -0.7, 2.0), // A
 				new THREE.Vector3( 0.0, -0.1, 3.0), // B
@@ -311,7 +256,6 @@
 				0.15,	-0.25, -0.75, 0.9,
 				0.45,	-0.25, -0.25, 0.9,
 				0.5,	-0.25, -0.25, 0.9,
-				//0.6,	 1.0, 0.0, 0.0,
 				0.75,	 0.5, 0.0, -0.5,
 				0.9,	 0.0, -0.75, 0.0,
 			]);
@@ -329,31 +273,6 @@
 				0.7,	-1.0,
 				0.8,	0.5,
 			]);
-
-			/*
-			const cameraTargetPoints = [
-				_cameraTarget,
-				_cameraTarget,
-				_cameraTarget,
-				_cameraTarget,
-				new THREE.Vector3(-0.25, 0.0, 0.9),
-				new THREE.Vector3(0.8, -0.75, -0.2), // A'
-				new THREE.Vector3(0.8, -0.75, -0.2), // A'
-				//new THREE.Vector3(0.1, -0.75, 0.1), // O'
-				_cameraTarget,
-			];
-
-			const cameraOptionsPoints = [
-				//                persp        zoom
-				new THREE.Vector3( 2.0,  3.0,  1.0),
-				new THREE.Vector3(-0.7,  3.0,  1.0),
-				new THREE.Vector3(-0.8,  3.0, -2.0),
-				new THREE.Vector3( 2.0,  3.0,  1.0),
-			];
-
-			const _cameraTargetCurve = new THREE.CatmullRomCurve3(cameraTargetPoints, true, 'chordal');
-			const _cameraOptionsCurve = new THREE.CatmullRomCurve3(cameraOptionsPoints, true, 'chordal');
-			*/
 
 			// Markers
 			let _cameraMarker;
@@ -386,8 +305,6 @@
 					for (let i = 0; i < count; ++i) {
 						const t = i / count;
 						const point = _cameraPositionCurve.getPointAt(t); // space uniform
-						//const point = _cameraPositionCurve.getPoint(t); // points uniform
-						
 						const m = new THREE.Mesh(markerGeometry, material);
 						m.position.copy(point);
 						m.scale.multiplyScalar(i % (count / 8) == 0 ? 0.5 : 0.2);
@@ -428,8 +345,8 @@
 					_targetMarker.position.copy(target);
 				}
 
-				console.log("update camera", "phase:", _cameraCurvePhase, "perspective:", perspective, "zoomE:", zoomE);
-				//console.log("update camera", "phase:", _cameraCurvePhase, "pos:", pos, "look at:", _cameraTarget, "focus:", _camera.focus);
+				//console.log("update camera", "phase:", _cameraCurvePhase, "perspective:", perspective, "zoomE:", zoomE);
+				//console.log("update camera", "phase:", _cameraCurvePhase, "pos:", pos, "look at:", target);
 			}
 
 			//-------------------------------------------------------------------------
@@ -469,22 +386,22 @@
 						if (e.ctrlKey) {
 							_camera.perspective = (nX - 0.5) * 3;
 							_camera.updateProjectionMatrix();
-							console.log("set camera perspective", _camera.perspective);
+							//console.log("set camera perspective", _camera.perspective);
 						}
 						else if (e.shiftKey) {
 							_camera.focus = (nX - 0.5) * 5;
 							_camera.updateProjectionMatrix();
-							console.log("set camera focus", _camera.focus);
+							//console.log("set camera focus", _camera.focus);
 						}
 						else if (e.altKey) {
 							_camera.zoom = nX * 3;
 							_camera.updateProjectionMatrix();
-							console.log("set camera zoom", _camera.zoom);
+							//console.log("set camera zoom", _camera.zoom);
 						}
 						else {
 							_cameraCurvePhase += 1.0 - dX;
 							_cameraCurvePhase %= 1.0;
-							console.log("camera phase", _cameraCurvePhase);
+							//console.log("camera phase", _cameraCurvePhase);
 							updateCamera();
 						}
 					}
@@ -497,14 +414,10 @@
 				             e.code == 'ArrowDown'  ? -1 : 0;
 				if (dirX || dirY) {
 					e.preventDefault();
-
 					_cameraCurvePhase += 1.0 + 0.01 * dirX;
 					_cameraCurvePhase %= 1.0;
-					console.log("camera phase", _cameraCurvePhase);
+					//console.log("camera phase", _cameraCurvePhase);
 					updateCamera();
-
-					//_flyingSpeedX += 0.05 * dirX;
-					//_flyingSpeedY += 0.05 * dirY;
 				} else if (e.code == 'End') {
 					e.preventDefault();
 					_renderer.setAnimationLoop( null );

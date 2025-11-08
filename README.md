@@ -42,8 +42,8 @@ The resulting projection matrix has the following form:
 
 The values _A_ and _B_ are computed so that the _z_ coordinate in the range _[near, far]_ maps to _[-1, 1]_ in clip space.
 
-See the source code for details:  
-https://github.com/bntre/reverse-perspective-threejs/blob/main/index.html#L67
+See the updateProjectionMatrix() function for details:  
+https://github.com/bntre/reverse-perspective-threejs/blob/main/index.html#L60
 
 For more information about projection matrices, refer to the excellent article by Song Ho Ahn: https://www.songho.ca/opengl/gl_projectionmatrix.html
 
