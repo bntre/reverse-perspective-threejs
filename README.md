@@ -11,7 +11,9 @@ This visual effect is somewhat similar to the well-known "Dolly zoom" (https://e
 
 **Demo video:** [https://www.youtube.com/watch?v=_5xI7a7cxBg](https://www.youtube.com/watch?v=_5xI7a7cxBg)
 
-<img src="https://img.youtube.com/vi/_5xI7a7cxBg/maxresdefault.jpg" width="600" alt="Video cover"/>
+<a href="https://www.youtube.com/watch?v=_5xI7a7cxBg">
+ <img src="https://img.youtube.com/vi/_5xI7a7cxBg/maxresdefault.jpg" width="600" alt="Video cover"/>
+</a>
 
 ## Frustum
 
