@@ -1,25 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>reverse perspective camera - three.js</title>
+		<title>Reverse Perspective Camera - three.js</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
 			body { font-family: Monospace; background-color: #bfe3dd; margin: 0; overflow: hidden; }
 			canvas { display: block; }
-			#info { position: absolute; top: 0px; width: 100%; padding: 10px; text-align: center; }
 		</style>
 	</head>
 
 	<body>
 
 		<div id="container"></div>
-
-		<div id="info">
-			<a href="https://github.com/bntre/reverse-perspective-threejs" target="_blank" rel="noopener">Sources</a>.
-			Models: <a href="https://www.mixamo.com/#/?query=Michelle&type=Character" target="_blank" rel="noopener">Michelle</a> by Mixamo, 
-			<a href="https://artstation.com/artwork/1AGwX" target="_blank" rel="noopener">Littlest Tokyo</a> by Glen Fox.
-		</div>
 
 		<script type="importmap">
 			{
@@ -36,14 +29,13 @@
 
 			import * as THREE from 'three';
 
-			import Stats from 'three/addons/libs/stats.module.js';
-
 			import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 			import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 			import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 			import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 
+			import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 
 			//-------------------------------------------------------------------------
 			class CustomPerspectiveCamera extends THREE.PerspectiveCamera {
@@ -99,30 +91,14 @@
 
 			const container = document.getElementById( 'container' );
 
-			const _useStats = 0;
-			let _stats;
-			if (_useStats) {
-				_stats = new Stats();
-				container.appendChild( _stats.dom );
-			}
-
 			const _renderer = new THREE.WebGLRenderer( { antialias: true } );
 			_renderer.setPixelRatio( window.devicePixelRatio );
 			_renderer.setSize( window.innerWidth, window.innerHeight );
 			_renderer.setAnimationLoop( animate );
 			container.appendChild( _renderer.domElement );
 
-			window.onresize = function () {
-				_camera.aspect = window.innerWidth / window.innerHeight;
-				_camera.updateProjectionMatrix();
-
-				_renderer.setSize( window.innerWidth, window.innerHeight );
-			};
-
-			const aspect = window.innerWidth / window.innerHeight;
-			//const _camera = new THREE.PerspectiveCamera( 40, aspect, 1, 100 );
-			//_camera.zoom = 1.0; _camera.updateProjectionMatrix();
-			const _camera = new CustomPerspectiveCamera( aspect, 
+			const _camera = new CustomPerspectiveCamera(
+				window.innerWidth / window.innerHeight,
 				0.0,      // perspective
 				0.2,      // zoom
 				10,       // focus
@@ -131,6 +107,12 @@
 			_camera.position.set( 0, 0, 10 );
 			_camera.updateMatrixWorld();
 
+			window.onresize = function () {
+				_camera.aspect = window.innerWidth / window.innerHeight;
+				_camera.updateProjectionMatrix();
+
+				_renderer.setSize( window.innerWidth, window.innerHeight );
+			};
 
 			//-------------------------------------------------------------------------
 			// Scene setup
@@ -143,12 +125,6 @@
 
 			if (1) { // Fog
 				_scene.fog = new THREE.Fog( 0xbfe3dd, 4, 10 );
-			}
-
-			if (0) { // Grid
-				const gridHelper = new THREE.GridHelper(10, 10, 0x0000FF, 0x00FF00);
-				gridHelper.position.y = -0.75;
-				_scene.add(gridHelper);
 			}
 
 			//-------------------------------------------------------------------------
@@ -171,14 +147,12 @@
 					_scene.add( model );
 
 					const mixer = new THREE.AnimationMixer( model );
-					// duration 18.233333587646484
+					// duration 10 sec
 					mixer.clipAction( gltf.animations[ 0 ] ).play();
 					_mixers.push(mixer);
 
 				}, undefined, function ( e ) {
-
 					console.error( e );
-
 				} );
 			}
 
@@ -190,20 +164,18 @@
 					_scene.add( model );
 
 					const mixer = new THREE.AnimationMixer( model );
-					// duration 10, dance bpm 106.6
+					// duration 18.2333 sec, dance bpm 106.6 ?
 					mixer.clipAction( gltf.animations[ 0 ] ).setEffectiveTimeScale( 72/106.6 ).play();
 					_mixers.push(mixer);
 
 				}, undefined, function ( e ) {
-
 					console.error( e );
-
 				} );
 			}
 
 
 			//-------------------------------------------------------------------------
-			// Move camera along a curve
+			// Moving camera along a curve
 
 			function makeCyclicInterpolant(sampleSize, data) {
 				// data format (for sampleSize 3): [
@@ -232,10 +204,9 @@
 				return new THREE.CubicInterpolant(sampleTimes, sampleValues, sampleSize);
 			}
 
-			const _useCameraCurve = 1; // apply curve values to camera
+			let _cameraManualMode = 0; // use Orbit controls instead of moving along the curve path
+
 			let _cameraCurvePhase = 0.0; // [0..1)
-			
-			const _playCameraCurve = 1;
 			const _playCameraCurveSpeed = 2 / 33.15; // cycles per second
 
 			const _cameraPositionCurve = new THREE.CatmullRomCurve3([
@@ -273,95 +244,43 @@
 				0.8,	0.5,
 			]);
 
-			// Markers
-			let _cameraMarker;
-			let _targetMarker;
-			if (0) {
-				const markerGeometry = new THREE.SphereGeometry(0.1, 4, 4);
-				if (1 && !_useCameraCurve) {
-					const material = new THREE.MeshBasicMaterial({ color: 0x0077FF });
-					_cameraMarker = new THREE.Mesh(markerGeometry, material);
-					_scene.add(_cameraMarker);
-				}
-				if (1) {
-					const material = new THREE.MeshBasicMaterial({ color: 0x0000FF });
-					_targetMarker = new THREE.Mesh(markerGeometry, material);
-					_targetMarker.position.copy(_cameraTarget);
-					_scene.add(_targetMarker);
-				}
-				if (1) { // camera raw points
-					const material = new THREE.MeshBasicMaterial({ color: 0xFF0000 }); // red
-					_cameraPositionCurve.points.forEach((point, index) => {
-						const m = new THREE.Mesh(markerGeometry, material);
-						m.position.copy(point);
-						m.scale.multiplyScalar(0.5);
-						_scene.add(m);
-					});
-				}
-				if (1) { // camera interpolated points
-					const material = new THREE.MeshBasicMaterial({ color: 0x00FF00 }); // green
-					const count = 48;
-					for (let i = 0; i < count; ++i) {
-						const t = i / count;
-						const point = _cameraPositionCurve.getPointAt(t); // space uniform
-						const m = new THREE.Mesh(markerGeometry, material);
-						m.position.copy(point);
-						m.scale.multiplyScalar(i % (count / 8) == 0 ? 0.5 : 0.2);
-						_scene.add(m);
-					}
-				}
+			function updatePlanes(cameraTargetPos) {
+				const focus = cameraTargetPos.clone().sub(_camera.position).length();
+				_camera.focus = focus;
+				_camera.near  = focus - 4;
+				_camera.far   = focus + 4;
 			}
 
-			function updateCamera() {
-
+			function updateCameraFromCurve() {
 				const pos           = _cameraPositionCurve.getPointAt(_cameraCurvePhase);
 				const target        = new THREE.Vector3(... _cameraTargetInterpolant.evaluate(_cameraCurvePhase));
 				const perspective   = _cameraPerspectiveInterpolant.evaluate(_cameraCurvePhase)[0];
 				const zoomE         = _cameraZoomEInterpolant.evaluate(_cameraCurvePhase)[0];
 
-				if (_useCameraCurve) {
-					// Position
-					_camera.position.copy(pos);
-					_camera.lookAt(target);
-					//_camera.updateMatrixWorld(); // updated in lookAt
-					
-					// Projection
-					const focus = target.clone().sub(pos).length();
-					_camera.focus = focus;
-					_camera.near  = focus - 4;
-					_camera.far   = focus + 4;
-					_camera.perspective = perspective;
-					_camera.zoom = Math.pow(2.0, zoomE);
-					_camera.updateProjectionMatrix();
-
-				} else {
-					if (_cameraMarker) {
-						_cameraMarker.position.copy(pos);
-					}
-				}
-
-				if (_targetMarker) {
-					_targetMarker.position.copy(target);
-				}
-
-				//console.log("update camera", "phase:", _cameraCurvePhase, "perspective:", perspective, "zoomE:", zoomE);
-				//console.log("update camera", "phase:", _cameraCurvePhase, "pos:", pos, "look at:", target);
+				// Position
+				_camera.position.copy(pos);
+				_camera.lookAt(target);
+				//_camera.updateMatrixWorld(); // updated in lookAt
+				
+				// Projection
+				updatePlanes(target);
+				_camera.perspective = perspective;
+				_camera.zoom = Math.pow(2.0, zoomE);
+				_camera.updateProjectionMatrix();
 			}
 
 			//-------------------------------------------------------------------------
-			// Add controls
-			const _useOrbitControls = 1 && !_useCameraCurve;
-			let _controls;
-			if (_useOrbitControls) { //!!! NB! controls lookAt !
-				_controls = new OrbitControls( _camera, _renderer.domElement );
-				_controls.target.set( 0, 0.5, 0 );
-				_controls.update();
-				_controls.enablePan = false;
-				_controls.enableDamping = true;
-				_controls.enableZoom = false; // don't change camera distance
-			}
+			// Orbit controls (for manual camera mode)
+			let _orbitControls;
+			_orbitControls = new OrbitControls( _camera, _renderer.domElement );
+			_orbitControls.target.set( 0, 0.5, 0 );
+			_orbitControls.enablePan = false;
+			_orbitControls.enableDamping = true;
+			_orbitControls.enableZoom = false; // don't change camera distance
+			_orbitControls.update();
 
-			// Mouse control
+			//-------------------------------------------------------------------------
+			// Mouse/keyboard control
 
 			let _prevMouseX = 0, _prevMouseY = 0;
 			let _mouseIsPressed = false;
@@ -381,52 +300,91 @@
 				if (e.buttons) {
 					const nX = e.clientX / window.innerWidth;
 					const nY = e.clientY / window.innerHeight;
-					// Dragging
-					const dX =  (e.clientX - _prevMouseX) / window.innerHeight; // normalize
+					const dX =  (e.clientX - _prevMouseX) / window.innerHeight; // "normalize"
 					const dY = -(e.clientY - _prevMouseY) / window.innerHeight;
 					_prevMouseX = e.clientX;
 					_prevMouseY = e.clientY;
 					if (e.buttons == 1) {
 						if (e.ctrlKey) {
-							_camera.perspective = (nX - 0.5) * 3;
-							_camera.updateProjectionMatrix();
-							//console.log("set camera perspective", _camera.perspective);
-						}
-						else if (e.shiftKey) {
-							_camera.focus = (nX - 0.5) * 5;
-							_camera.updateProjectionMatrix();
-							//console.log("set camera focus", _camera.focus);
-						}
-						else if (e.altKey) {
 							_camera.zoom = nX * 3;
 							_camera.updateProjectionMatrix();
-							//console.log("set camera zoom", _camera.zoom);
+						}
+						else if (e.shiftKey) {
+							_camera.perspective = (nX - 0.5) * 3;
+							_camera.updateProjectionMatrix();
+						}
+						else if (e.altKey) {
 						}
 						else {
-							_cameraCurvePhase += 1.0 - dX;
-							_cameraCurvePhase %= 1.0;
-							//console.log("camera phase", _cameraCurvePhase);
-							updateCamera();
+							if (!_cameraManualMode) {
+								_cameraCurvePhase += 1.0 - dX;
+								_cameraCurvePhase %= 1.0;
+								updateCameraFromCurve();
+							}
 						}
 					}
 				}
 			}, { capture: true } );
+			
+			document.addEventListener('wheel', (e) => {
+				if (!_cameraManualMode) return;
+				e.preventDefault();
+				if (e.ctrlKey) {
+					_camera.zoom *= Math.pow(2, e.deltaY * 0.001);
+					_camera.updateProjectionMatrix();
+				} else {
+					_camera.perspective += e.deltaY * 0.001;
+					_camera.updateProjectionMatrix();
+				}
+			}, { passive: false });
+			
 			document.addEventListener('keydown', (e) => {
-				const dirX = e.code == 'ArrowRight' ? 1 :
-				             e.code == 'ArrowLeft'  ? -1 : 0;
-				const dirY = e.code == 'ArrowUp'    ? 1 :
-				             e.code == 'ArrowDown'  ? -1 : 0;
-				if (dirX || dirY) {
-					e.preventDefault();
-					_cameraCurvePhase += 1.0 + 0.01 * dirX;
-					_cameraCurvePhase %= 1.0;
-					//console.log("camera phase", _cameraCurvePhase);
-					updateCamera();
-				} else if (e.code == 'End') {
+				if (e.code == 'End') { // Stop the loop
 					e.preventDefault();
 					_renderer.setAnimationLoop( null );
 				}
 			});
+
+			//-------------------------------------------------------------------------
+			// GUI
+			if (1) {
+				const gui = new GUI();
+				const config = {
+					manualCamera: false, // Default disabled (OrbitControls active)
+				};
+				const manualControl = gui.add(config, 'manualCamera').name('Manual Camera');
+				manualControl.onChange(value => {
+					_cameraManualMode ^= true;
+					if (_cameraManualMode) {
+						// Switching to manual mode (orbit controls)
+						_camera.position.multiplyScalar(5.0 / _camera.position.length());
+						updatePlanes(_orbitControls.target);
+						_camera.updateProjectionMatrix();
+					}
+				});
+				const desc = gui.addFolder('Description').close()
+					.add({ info: '' }, 'info').domElement;
+				desc.innerHTML =
+`<pre>
+Source: <a href="https://github.com/bntre/reverse-perspective-threejs" target="_blank" rel="noopener">GitHub</a>.
+Models:
+  <a href="https://www.mixamo.com/#/?query=Michelle&type=Character" target="_blank" rel="noopener">Michelle</a> by Mixamo,
+  <a href="https://artstation.com/artwork/1AGwX" target="_blank" rel="noopener">Littlest Tokyo</a> by Glen Fox.
+
+Automatic Camera:
+  Mouse drag: move camera along the path
+
+Manual Camera:
+  Mouse drag: rotation
+  Wheel: perspective
+    + Ctrl: zoom
+  L-button:
+    + Shift: perspective
+    + Ctrl: zoom
+
+End: stop the program
+</pre>`;
+			}
 
 			//-------------------------------------------------------------------------
 			// Loop
@@ -441,28 +399,19 @@
 					m.update( delta );
 				}
 
-				if (_useCameraCurve) {
-					if (_playCameraCurve && !_mouseIsPressed) {
+				if (_cameraManualMode) {
+					_orbitControls.update();
+				} else {
+					if (!_mouseIsPressed) {
 						_cameraCurvePhase += delta * _playCameraCurveSpeed;
 						_cameraCurvePhase %= 1.0;
-						updateCamera();
+						updateCameraFromCurve();
 					}
-				}
-
-				if (_useOrbitControls) {
-					_controls.update();
-				}
-
-				if (_useStats) {
-					_stats.update();
 				}
 
 				_renderer.render( _scene, _camera );
 			}
 
-
 		</script>
-
 	</body>
-
 </html>
