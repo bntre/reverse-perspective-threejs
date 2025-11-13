@@ -274,16 +274,18 @@
 			let _orbitControls;
 			_orbitControls = new OrbitControls( _camera, _renderer.domElement );
 			_orbitControls.target.set( 0, 0.5, 0 );
-			_orbitControls.enablePan = false;
 			_orbitControls.enableDamping = true;
 			_orbitControls.enableZoom = false; // don't change camera distance
+			_orbitControls.enablePan = false;
+			_orbitControls.enableRotate = false; // enabled in GUI
 			_orbitControls.update();
 
 			//-------------------------------------------------------------------------
-			// Mouse/keyboard control
+			// Mouse/keyboard/touch control
 
 			let _prevMouseX = 0, _prevMouseY = 0;
-			let _mouseIsPressed = false;
+			let _mouseIsPressed = false; // used to stop playing on dragging
+			let _prevTouchDistances = []; // distances between 2 touches [horz, vert]
 
 			const canvas = _renderer.domElement;
 			canvas.addEventListener('mousedown', (e) => {
@@ -345,6 +347,56 @@
 				}
 			});
 
+			// Handle touches
+			function getDistances(touch1, touch2) {
+				const dx = touch2.clientX - touch1.clientX;
+				const dy = touch2.clientY - touch1.clientY;
+				return [Math.abs(dx), Math.abs(dy)];
+			}
+			canvas.addEventListener('touchstart', (e) => {
+				if (e.touches.length === 2) {
+					if (_cameraManualMode) {
+						_prevTouchDistances = getDistances(...e.touches);
+					}
+				} else if (e.touches.length === 1) {
+					if (!_cameraManualMode) {
+						_prevMouseX = e.touches[0].clientX;
+						_prevMouseY = e.touches[0].clientY;
+						_mouseIsPressed = true;
+					}
+				}
+			}, { passive: false });
+			document.addEventListener('touchend', (e) => {
+				if (e.touches.length === 0) {
+					_mouseIsPressed = false;
+				}
+			});
+			canvas.addEventListener('touchmove', e => {
+				if (e.touches.length === 2) {
+					if (_cameraManualMode) {
+						e.preventDefault();
+						const newDistances = getDistances(...e.touches);
+						const dX = (newDistances[0] - _prevTouchDistances[0]) / window.innerHeight; // normalize
+						const dY = (newDistances[1] - _prevTouchDistances[1]) / window.innerHeight; // normalize
+						_camera.zoom *= Math.pow(2, dX * 3.0);
+						_camera.perspective += dY * 3.0;
+						_camera.updateProjectionMatrix();
+						_prevTouchDistances = newDistances;
+					}
+				} else if (e.touches.length === 1) {
+					if (!_cameraManualMode) {
+						const dX =  (e.touches[0].clientX - _prevMouseX) / window.innerHeight; // normalize
+						const dY = -(e.touches[0].clientY - _prevMouseY) / window.innerHeight;
+						_prevMouseX = e.touches[0].clientX;
+						_prevMouseY = e.touches[0].clientY;
+						// Update phase
+						_cameraCurvePhase += 1.0 - dX;
+						_cameraCurvePhase %= 1.0;
+						updateCameraFromCurve();
+					}
+				}
+			}, { passive: false });
+
 			//-------------------------------------------------------------------------
 			// GUI
 			if (1) {
@@ -354,7 +406,8 @@
 				};
 				const manualControl = gui.add(config, 'manualCamera').name('Manual Camera');
 				manualControl.onChange(value => {
-					_cameraManualMode ^= true;
+					_cameraManualMode = !_cameraManualMode;
+					_orbitControls.enableRotate = _cameraManualMode;
 					if (_cameraManualMode) {
 						// Switching to manual mode (orbit controls)
 						_camera.position.multiplyScalar(5.0 / _camera.position.length());
@@ -376,11 +429,13 @@ Automatic Camera:
 
 Manual Camera:
   Mouse drag: rotation
-  Wheel: perspective
-    + Ctrl: zoom
   L-button:
     + Shift: perspective
     + Ctrl: zoom
+  Wheel: perspective
+    + Ctrl: zoom
+  Horizontal pinch: zoom
+  Vertical pinch: perspective
 
 End: stop the program
 </pre>`;
