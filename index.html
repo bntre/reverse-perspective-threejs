@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>Reverse Perspective Camera - three.js</title>
+		<title>Reverse Perspective Stereo Camera - three.js</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
@@ -38,18 +38,26 @@
 			import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 
 			//-------------------------------------------------------------------------
-			class CustomPerspectiveCamera extends THREE.PerspectiveCamera {
-				constructor(aspect, perspective, zoom, focus, near, far) {
+			class CustomPerspectiveStereoCamera extends THREE.PerspectiveCamera {
+				constructor(width, height, perspective, zoom, focus, near, far) {
 					// Call the parent constructor
-					super(50, aspect, near, far);
+					super(50, 1.0, near, far);
+					this.setSize(width, height);
 					this.zoom = zoom;
 					this.focus = focus;
 					this.perspective = perspective;
-					this.updateProjectionMatrix();
+					this.stereoAngle = 0.05; // in radians, angle to rotate both projection matrices
 				}
 
-				updateProjectionMatrix() {
-					if (this.perspective === undefined) return; // called from super constructor - ignore
+				setSize(width, height) {
+					this.width = width; // single side size
+					this.height = height;
+					this.aspect = width / height; // and aspect
+				}
+				
+				updateProjectionMatrix() {} // skip default update
+
+				updateProjectionMatrixStereo(shift) { // shift is -1 (left) or 1 (right)
 
 					const size = 1 / this.zoom; // use as height half-size
 					const aspect = this.aspect;
@@ -76,6 +84,11 @@
 
 					// For more information about projection matrices: https://www.songho.ca/opengl/gl_projectionmatrix.html
 
+					// rotate according to left or right eye
+					const mR = new THREE.Matrix4();
+					mR.makeRotationY(shift * this.stereoAngle);
+					mP.multiply(mR);
+
 					// put the camera to the focus plane
 					const mT = new THREE.Matrix4();
 					mT.makeTranslation(0, 0, this.focus);
@@ -93,25 +106,25 @@
 
 			const _renderer = new THREE.WebGLRenderer( { antialias: true } );
 			_renderer.setPixelRatio( window.devicePixelRatio );
-			_renderer.setSize( window.innerWidth, window.innerHeight );
+			_renderer.setScissorTest(true);
 			_renderer.setAnimationLoop( animate );
+			_renderer.setSize( window.innerWidth, window.innerHeight );
 			container.appendChild( _renderer.domElement );
 
-			const _camera = new CustomPerspectiveCamera(
-				window.innerWidth / window.innerHeight,
+			const _camera = new CustomPerspectiveStereoCamera(
+				window.innerWidth / 2,
+				window.innerHeight,
 				0.0,      // perspective
 				0.2,      // zoom
-				10,       // focus
-				5, 15     // near / far
+				5,       // focus
+				1, 9     // near / far
 			);
-			_camera.position.set( 0, 0, 10 );
+			_camera.position.set( 0, 0, 5 );
 			_camera.updateMatrixWorld();
 
 			window.onresize = function () {
-				_camera.aspect = window.innerWidth / window.innerHeight;
-				_camera.updateProjectionMatrix();
-
 				_renderer.setSize( window.innerWidth, window.innerHeight );
+				_camera.setSize( window.innerWidth / 2, window.innerHeight );
 			};
 
 			//-------------------------------------------------------------------------
@@ -204,7 +217,7 @@
 				return new THREE.CubicInterpolant(sampleTimes, sampleValues, sampleSize);
 			}
 
-			let _cameraManualMode = 0; // use Orbit controls instead of moving along the curve path
+			let _cameraManualMode = true; // use Orbit controls instead of moving along the curve path
 
 			let _cameraCurvePhase = 0.0; // [0..1)
 			const _playCameraCurveSpeed = 2 / 33.15; // cycles per second
@@ -266,7 +279,6 @@
 				updatePlanes(target);
 				_camera.perspective = perspective;
 				_camera.zoom = Math.pow(2.0, zoomE);
-				_camera.updateProjectionMatrix();
 			}
 
 			//-------------------------------------------------------------------------
@@ -277,8 +289,9 @@
 			_orbitControls.enableDamping = true;
 			_orbitControls.enableZoom = false; // don't change camera distance
 			_orbitControls.enablePan = false;
-			_orbitControls.enableRotate = false; // enabled in GUI
+			_orbitControls.enableRotate = _cameraManualMode;
 			_orbitControls.update();
+			updatePlanes(_orbitControls.target);
 
 			//-------------------------------------------------------------------------
 			// Mouse/keyboard/touch control
@@ -308,14 +321,14 @@
 					_prevMouseY = e.clientY;
 					if (e.buttons == 1) {
 						if (e.ctrlKey) {
-							_camera.zoom = nX * 3;
-							_camera.updateProjectionMatrix();
+							if (_cameraManualMode) {
+								_camera.zoom *= Math.pow(2, dX * 1.0);
+							}
 						}
 						else if (e.shiftKey) {
-							_camera.perspective = (nX - 0.5) * 3;
-							_camera.updateProjectionMatrix();
-						}
-						else if (e.altKey) {
+							if (_cameraManualMode) {
+								_camera.perspective += dX * 1.0;
+							}
 						}
 						else {
 							if (!_cameraManualMode) {
@@ -329,14 +342,17 @@
 			}, { capture: true } );
 			
 			document.addEventListener('wheel', (e) => {
-				if (!_cameraManualMode) return;
 				e.preventDefault();
 				if (e.ctrlKey) {
-					_camera.zoom *= Math.pow(2, e.deltaY * 0.001);
-					_camera.updateProjectionMatrix();
+					if (_cameraManualMode) {
+						_camera.zoom *= Math.pow(2, e.deltaY * 0.001);
+					}
+				} else if (e.altKey) {
+					_camera.stereoAngle *= Math.pow(2, e.deltaY * 0.001);
 				} else {
-					_camera.perspective += e.deltaY * 0.001;
-					_camera.updateProjectionMatrix();
+					if (_cameraManualMode) {
+						_camera.perspective += e.deltaY * 0.001;
+					}
 				}
 			}, { passive: false });
 			
@@ -380,7 +396,6 @@
 						const dY = (newDistances[1] - _prevTouchDistances[1]) / window.innerHeight; // normalize
 						_camera.zoom *= Math.pow(2, dX * 3.0);
 						_camera.perspective += dY * 3.0;
-						_camera.updateProjectionMatrix();
 						_prevTouchDistances = newDistances;
 					}
 				} else if (e.touches.length === 1) {
@@ -401,8 +416,9 @@
 			// GUI
 			if (1) {
 				const gui = new GUI();
+				gui.close();
 				const config = {
-					manualCamera: false, // Default disabled (OrbitControls active)
+					manualCamera: _cameraManualMode, // true for active OrbitControls rotation
 				};
 				const manualControl = gui.add(config, 'manualCamera').name('Manual Camera');
 				manualControl.onChange(value => {
@@ -412,7 +428,6 @@
 						// Switching to manual mode (orbit controls)
 						_camera.position.multiplyScalar(5.0 / _camera.position.length());
 						updatePlanes(_orbitControls.target);
-						_camera.updateProjectionMatrix();
 					}
 				});
 				const desc = gui.addFolder('Description').close()
@@ -434,6 +449,7 @@ Manual Camera:
     + Ctrl: zoom
   Wheel: perspective
     + Ctrl: zoom
+    + Alt: eye distance
   Horizontal pinch: zoom
   Vertical pinch: perspective
 
@@ -464,7 +480,21 @@ End: stop the program
 					}
 				}
 
-				_renderer.render( _scene, _camera );
+				// Render both sides
+				const w = _camera.width; // single side width
+				const h = _camera.height;
+
+				// Left side
+				_camera.updateProjectionMatrixStereo(-1);
+				_renderer.setViewport(0, 0, w, h);
+				_renderer.setScissor (0, 0, w, h);
+				_renderer.render(_scene, _camera);
+
+				// Right side
+				_camera.updateProjectionMatrixStereo(1);
+				_renderer.setViewport(w, 0, w, h);
+				_renderer.setScissor (w, 0, w, h);
+				_renderer.render(_scene, _camera);
 			}
 
 		</script>
